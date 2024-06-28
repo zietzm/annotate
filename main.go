@@ -53,6 +53,7 @@ func initialModel(records []item) model {
 	ta.Focus()
 
 	vp := viewport.New(0, 0)
+	vp.MouseWheelEnabled = false
 
 	return model{
 		list:     l,
@@ -95,6 +96,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.saveAnnotation()
 			m.previousItem()
 			return m, textarea.Blink
+		case m.mode == "edit" && msg.Type == tea.KeySpace:
+			// Only give the message to the textarea, not the viewport
+			m.textarea, cmd = m.textarea.Update(msg)
+			return m, cmd
+		case m.mode == "edit" && msg.Type == tea.KeyPgUp:
+			m.viewport.HalfViewUp()
+			return m, nil
+		case m.mode == "edit" && msg.Type == tea.KeyPgDown:
+			m.viewport.HalfViewDown()
+			return m, nil
 		}
 
 	case tea.WindowSizeMsg:
@@ -122,7 +133,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.headerStyle = lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color("170"))
+			Foreground(lipgloss.Color("#777777"))
+	case tea.MouseMsg:
+		return m, nil
 	}
 
 	if m.mode == "list" {
@@ -143,7 +156,7 @@ func (m model) View() string {
 		return m.list.View()
 	}
 
-	headerContent := fmt.Sprintf("Item %d", m.currentItem+1)
+	headerContent := fmt.Sprintf("Item %d/%d", m.currentItem+1, len(m.records))
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
@@ -164,6 +177,7 @@ func (m *model) saveAnnotation() {
 func (m *model) nextItem() {
 	if m.currentItem < len(m.records)-1 {
 		m.currentItem++
+		m.list.Select(m.currentItem)
 		m.viewport.SetContent(m.records[m.currentItem].text)
 		m.textarea.SetValue(m.records[m.currentItem].annotation)
 		m.viewport.GotoTop()
