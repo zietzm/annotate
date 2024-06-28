@@ -42,18 +42,13 @@ func initialModel(records []item) model {
 
 	l := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	l.Title = "Items to Annotate"
-	l.Styles.PaginationStyle = list.DefaultStyles().PaginationStyle.PaddingLeft(2)
-	l.Styles.HelpStyle = list.DefaultStyles().HelpStyle.PaddingLeft(2).PaddingBottom(1)
 
 	ta := textarea.New()
 	ta.Placeholder = "Type your annotation here..."
 	ta.CharLimit = 0 // No limit
 	ta.Focus()
-	ta.FocusedStyle.Base = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1)
-	ta.BlurredStyle.Base = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1)
 
 	vp := viewport.New(0, 0)
-	vp.Style = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1)
 
 	return model{
 		list:     l,
@@ -101,8 +96,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+
 		m.list.SetWidth(msg.Width)
 		m.list.SetHeight(msg.Height)
+
 		contentHeight := msg.Height - 4
 		contentWidth := msg.Width/2 - 4
 		m.viewport.Width = contentWidth
@@ -129,15 +126,19 @@ func (m model) View() string {
 		return m.list.View()
 	}
 
-	return lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		lipgloss.JoinVertical(
-			lipgloss.Top,
-			m.viewport.View(),
-			fmt.Sprintf("%d/%d", m.currentItem+1, len(m.records)),
-		),
-		m.textarea.View(),
-	)
+	leftStyle := lipgloss.NewStyle().
+		Width(m.width/2 - 4).
+		Height(m.height - 4).
+		Border(lipgloss.RoundedBorder())
+	rightStyle := lipgloss.NewStyle().
+		Width(m.width/2 - 4).
+		Height(m.height - 4).
+		Border(lipgloss.RoundedBorder())
+
+	leftView := leftStyle.Render(m.viewport.View())
+	rightView := rightStyle.Render(m.textarea.View())
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, leftView, rightView)
 }
 
 func (m *model) saveAnnotation() {
