@@ -42,7 +42,7 @@ func readCsv(inputFile string, selectedColumn string, annotationColumn string) (
 		if annotationColumnIndex != -1 {
 			annotation = record[annotationColumnIndex]
 		}
-		items[i] = item{title: title, text: description, annotation: annotation}
+		items[i] = item{number: i + 1, title: title, text: description, annotation: annotation}
 	}
 
 	return items, nil

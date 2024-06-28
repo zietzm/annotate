@@ -14,23 +14,27 @@ import (
 )
 
 type model struct {
-	list        list.Model
-	viewport    viewport.Model
-	textarea    textarea.Model
-	records     []item
-	currentItem int
-	mode        string
-	width       int
-	height      int
+	list          list.Model
+	viewport      viewport.Model
+	textarea      textarea.Model
+	records       []item
+	currentItem   int
+	mode          string
+	width         int
+	height        int
+	viewportStyle lipgloss.Style
+	textareaStyle lipgloss.Style
+	headerStyle   lipgloss.Style
 }
 
 type item struct {
+	number     int
 	title      string
 	text       string
 	annotation string
 }
 
-func (i item) Title() string       { return i.title }
+func (i item) Title() string       { return fmt.Sprintf("%d. %s", i.number, i.title) }
 func (i item) Description() string { return i.text }
 func (i item) FilterValue() string { return i.title }
 
@@ -46,7 +50,7 @@ func initialModel(records []item) model {
 	ta := textarea.New()
 	ta.Placeholder = "Type your annotation here..."
 	ta.CharLimit = 0 // No limit
-	ta.FocusedStyle.CursorLine = lipgloss.NewStyle()
+	// ta.FocusedStyle.CursorLine = lipgloss.NewStyle()
 	ta.Focus()
 
 	vp := viewport.New(0, 0)
@@ -107,6 +111,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.Height = contentHeight
 		m.textarea.SetWidth(contentWidth)
 		m.textarea.SetHeight(contentHeight)
+
+		m.viewportStyle = lipgloss.NewStyle().
+			Width(m.width/2 - 4).
+			Height(m.height - 4).
+			Border(lipgloss.RoundedBorder())
+		m.textareaStyle = lipgloss.NewStyle().
+			Width(m.width/2 - 4).
+			Height(m.height - 4).
+			Border(lipgloss.RoundedBorder())
+
+		m.headerStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("170"))
 	}
 
 	if m.mode == "list" {
@@ -127,19 +144,17 @@ func (m model) View() string {
 		return m.list.View()
 	}
 
-	leftStyle := lipgloss.NewStyle().
-		Width(m.width/2 - 4).
-		Height(m.height - 4).
-		Border(lipgloss.RoundedBorder())
-	rightStyle := lipgloss.NewStyle().
-		Width(m.width/2 - 4).
-		Height(m.height - 4).
-		Border(lipgloss.RoundedBorder())
+	headerContent := fmt.Sprintf("Item %d", m.currentItem+1)
 
-	leftView := leftStyle.Render(m.viewport.View())
-	rightView := rightStyle.Render(m.textarea.View())
-
-	return lipgloss.JoinHorizontal(lipgloss.Top, leftView, rightView)
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		m.headerStyle.Render(headerContent),
+		lipgloss.JoinHorizontal(
+			lipgloss.Top,
+			m.viewportStyle.Render(m.viewport.View()),
+			m.textareaStyle.Render(m.textarea.View()),
+		),
+	)
 }
 
 func (m *model) saveAnnotation() {
