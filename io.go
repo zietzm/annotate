@@ -38,7 +38,7 @@ func readCsv(inputFile string, selectedColumn string, annotationColumn string) (
 	for i, record := range records[1:] {
 		title := record[0]
 		description := record[textColumnIndex]
-		var annotation string = ""
+		var annotation = ""
 		if annotationColumnIndex != -1 {
 			annotation = record[annotationColumnIndex]
 		}
