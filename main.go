@@ -46,6 +46,7 @@ func initialModel(records []item) model {
 	ta := textarea.New()
 	ta.Placeholder = "Type your annotation here..."
 	ta.CharLimit = 0 // No limit
+	ta.FocusedStyle.CursorLine = lipgloss.NewStyle()
 	ta.Focus()
 
 	vp := viewport.New(0, 0)
@@ -60,7 +61,7 @@ func initialModel(records []item) model {
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return textarea.Blink
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
