@@ -50,7 +50,6 @@ func initialModel(records []item) model {
 	ta := textarea.New()
 	ta.Placeholder = "Type your annotation here..."
 	ta.CharLimit = 0 // No limit
-	// ta.FocusedStyle.CursorLine = lipgloss.NewStyle()
 	ta.Focus()
 
 	vp := viewport.New(0, 0)
