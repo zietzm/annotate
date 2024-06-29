@@ -2,7 +2,7 @@
 
 A simple text-based tool for annotating documents in the command line.
 
-![demo](demo.gif)
+<img src="demo.gif" alt="demo" width="500"/>
 
 ## Usage
 
