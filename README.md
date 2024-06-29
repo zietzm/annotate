@@ -2,6 +2,8 @@
 
 A simple text-based tool for annotating documents in the command line.
 
+![demo](demo.gif)
+
 ## Usage
 
 To annotate a CSV file called `to_annotate.csv`, with a column called `text-column-name` run
