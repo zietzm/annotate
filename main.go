@@ -96,16 +96,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.saveAnnotation()
 			m.previousItem()
 			return m, textarea.Blink
-		case m.mode == "edit" && msg.Type == tea.KeySpace:
-			// Only give the message to the textarea, not the viewport
-			m.textarea, cmd = m.textarea.Update(msg)
-			return m, cmd
 		case m.mode == "edit" && msg.Type == tea.KeyPgUp:
 			m.viewport.HalfViewUp()
 			return m, nil
 		case m.mode == "edit" && msg.Type == tea.KeyPgDown:
 			m.viewport.HalfViewDown()
 			return m, nil
+		case m.mode == "edit":
+			// Only give the message to the textarea, not the viewport
+			m.textarea, cmd = m.textarea.Update(msg)
+			return m, cmd
 		}
 
 	case tea.WindowSizeMsg:
