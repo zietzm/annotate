@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
@@ -199,43 +200,58 @@ func main() {
 	var textColumn string
 	var annotationColumn string
 
-	pflag.StringVarP(&inputFile, "input", "i", "", "Input CSV file")
-	pflag.StringVarP(&outputFile, "output", "o", "", "Output CSV file")
-	pflag.StringVarP(&textColumn, "text-column", "t", "", "Column to annotate")
-	pflag.StringVarP(
+	var rootCmd = &cobra.Command{
+		Use:   "annotate",
+		Short: "A brief description of your application",
+		Long: `A longer description that spans multiple lines and likely contains
+examples and usage of using your application.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			if inputFile == "" || outputFile == "" || textColumn == "" {
+				fmt.Println("Please provide input file, output file, and column to annotate")
+				pflag.PrintDefaults()
+				os.Exit(1)
+			}
+
+			records, err := readCsv(inputFile, textColumn, annotationColumn)
+			if err != nil {
+				fmt.Println("Error reading CSV:", err)
+				os.Exit(1)
+			}
+
+			m := initialModel(records)
+			p := tea.NewProgram(m, tea.WithAltScreen())
+
+			if _, err := p.Run(); err != nil {
+				fmt.Println("Error running program:", err)
+				os.Exit(1)
+			}
+
+			if annotationColumn == "" {
+				annotationColumn = "annotation"
+			}
+
+			err = writeCsv(outputFile, m.records, textColumn, annotationColumn)
+			if err != nil {
+				fmt.Println("Error writing CSV:", err)
+				os.Exit(1)
+			}
+
+			fmt.Println("Annotations saved to", outputFile)
+		},
+	}
+
+	rootCmd.Flags().StringVarP(&inputFile, "input", "i", "", "Input CSV file (required)")
+	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "Output CSV file (required)")
+	rootCmd.Flags().StringVarP(&textColumn, "text", "t", "", "Column to annotate (required)")
+	rootCmd.Flags().StringVarP(
 		&annotationColumn,
-		"annotation-column",
+		"annotation",
 		"a",
 		"",
 		"Column containing annotations",
 	)
-	pflag.Parse()
-
-	if inputFile == "" || outputFile == "" || textColumn == "" {
-		fmt.Println("Please provide input file, output file, and column to annotate")
-		pflag.PrintDefaults()
-		os.Exit(1)
-	}
-
-	records, err := readCsv(inputFile, textColumn, annotationColumn)
-	if err != nil {
-		fmt.Println("Error reading CSV:", err)
-		os.Exit(1)
-	}
-
-	m := initialModel(records)
-	p := tea.NewProgram(m, tea.WithAltScreen())
-
-	if _, err := p.Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
-
-	err = writeCsv(outputFile, m.records)
-	if err != nil {
-		fmt.Println("Error writing CSV:", err)
-		os.Exit(1)
-	}
-
-	fmt.Println("Annotations saved to", outputFile)
+	rootCmd.MarkFlagRequired("input")
+	rootCmd.MarkFlagRequired("output")
+	rootCmd.MarkFlagRequired("text")
+	rootCmd.Execute()
 }

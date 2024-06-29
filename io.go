@@ -48,7 +48,7 @@ func readCsv(inputFile string, selectedColumn string, annotationColumn string) (
 	return items, nil
 }
 
-func writeCsv(outputFile string, records []item) error {
+func writeCsv(outputFile string, records []item, textColumn, annotationColumn string) error {
 	outputF, err := os.Create(outputFile)
 	if err != nil {
 		return fmt.Errorf("error creating output file: %w", err)
@@ -58,7 +58,7 @@ func writeCsv(outputFile string, records []item) error {
 	writer := csv.NewWriter(outputF)
 	defer writer.Flush()
 
-	headers := []string{"title", "text", "annotation"}
+	headers := []string{"title", textColumn, annotationColumn}
 	err = writer.Write(headers)
 	if err != nil {
 		return fmt.Errorf("error writing CSV: %w", err)
